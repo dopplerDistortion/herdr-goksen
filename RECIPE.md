@@ -74,6 +74,7 @@ inverted: bone fill, ink text. Hover is a solid `#1c1c1d`, never opacity.
   prompt, Close space goes to the restyled confirm, and Help goes to `g-help`.
 - Palette → "Motion specimen" opens a dialog with every effect and a PLAY
   button. SLOW ×4 makes the steps readable.
+- The GIFs in `docs/motion/` show each effect and the main dialogs.
 
 ## Built from
 
@@ -95,6 +96,18 @@ inverted: bone fill, ink text. Hover is a solid `#1c1c1d`, never opacity.
   - `Motion.play` chains `cx.timer.after` steps, one redraw per step, each with its own `cx`.
   - `.transition` and `.loop` are not used, because they only ease.
   - Endless marks use native `.frames()`.
+  - Every step length is multiplied by `Motion.factor()`. That is the view's own `scale`
+    times shared `"g.motion.scale"`, which defaults to 1.
+- `g-specimen` props are for recording:
+  - `only` (a panel label) shows one panel, 560px wide.
+  - `autoplay` (ms) replays that panel.
+  - `slow` starts the view at ×4.
+  - `scale` sets shared `"g.motion.scale"` for every mod. Set it to 1 to clear it.
+  - Open it with `tab.new {mod: "g-specimen", props}`.
+- `scripts/record.py` turns `herdr-app shot` bursts into GIFs with ffmpeg:
+  - It scales each shot to 1660px wide and crops it.
+  - It drops frames that did not change.
+  - It plays the frames back `speed` times faster than they were recorded.
 - Programs it runs:
   - `git`, `sh`, `open`, `powershell` and `hc` are inherited from the shipped mods.
   - New in this layout: `ls <home>/themes` (palette, settings) lists the theme names.
@@ -110,6 +123,15 @@ inverted: bone fill, ink text. Hover is a solid `#1c1c1d`, never opacity.
   dock the new mod into the open layout.
 - A new mod folder needs 1 to 2 seconds to load before `mod.open` finds it.
 - Never keep a `cx` across timer steps. Use the one each callback gets.
+- Build starts one timer tick after the first render. Keep the dialog
+  invisible until that tick, or the finished dialog flashes for one frame.
+- `herdr-app shot` comes at 1x or 2x, and the size can change between two
+  shots. Scale every frame before you crop it.
+- A terminal opened with `argv` still starts through the login shell. Its
+  startup output (for example oh-my-zsh warnings) shows before the program.
+  Clear the screen first, or record from after the clear.
+- `terminal.right_click` is a setting, not a click. Menus that need a real
+  click (the terminal menu, `+`) cannot be opened by a script.
 - The Reduce motion probe is macOS only. On other systems, `defaults` fails and motion stays on.
 - `g-palette` reads keybinds from `layout:goksen`. If you rename the layout, rename that section too.
 - Still drawn by Herdr, not restyled:

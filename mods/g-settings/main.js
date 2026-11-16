@@ -65,7 +65,9 @@ export default class Settings extends View {
       if (built) return this.render(cx);
       built = true;
       const sources = this.sources(this.themes, zoom);
-      cx.timer.after(1, (cx2) => this.m.build("build", sources, cx2 ?? cx));
+      // Hidden until the build's first step, so the finished dialog never flashes first.
+      this.waiting = true;
+      cx.timer.after(1, (cx2) => { this.waiting = false; this.m.build("build", sources, cx2 ?? cx); });
     }
     // A part shows its source while it writes, hides until its turn, and
     // shows itself once built. Part 0 is the frame.
@@ -113,7 +115,7 @@ export default class Settings extends View {
         .child(button("st-all", "All settings", false, () => { this.close(); run("app.settings"); }))
         .child(button("st-done", "Done", true, () => this.close()))));
     // While the frame writes, its source covers the whole dialog.
-    return div().relative().size_full().child(body)
+    return div().relative().size_full().when(Boolean(this.waiting), (x) => x.invisible()).child(body)
       .when(b?.part === 0, (x) => x.child(layer(b.lines, [24, 12])));
   }
 }

@@ -5,7 +5,7 @@
 
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { props, closeOverlay, theme, shared, settings } from "herdr";
+import { props, closeOverlay, theme, shared, setShared, settings } from "herdr";
 import { Motion, busy, scan, cursor, cutStyle, shockLayer, shockTitle, shockLine, shockShift, ring, reduced } from "./motion.js";
 
 const STEP_ROWS = ["New tab", "Split right", "Split down", "Rename tab", "Close tab"];
@@ -24,6 +24,32 @@ export default class Specimen extends View {
     this.box = { w: 360, h: 110 };
     this.handle = cx.focus_handle();
     this.handle.focus();
+    // Props for recording: `only` shows one panel (its label), `autoplay`
+    // replays it every that many ms, `slow` starts at ×4, and `scale` sets
+    // shared "g.motion.scale" to slow every goksen mod (1 clears it).
+    const p = props() ?? {};
+    this.only = p.only ?? null;
+    this.plays = {};
+    if (p.slow) { this.slow = true; this.m.scale = 4; }
+    if (typeof p.scale === "number") setShared("g.motion.scale", p.scale === 1 ? null : p.scale);
+    if (this.only && p.autoplay) {
+      const tick = (c) => {
+        this.autoplay(c);
+        c.timer.after(p.autoplay, (c2) => tick(c2 ?? c));
+      };
+      cx.timer.after(500, (c) => tick(c ?? cx));
+    }
+  }
+
+  autoplay(cx) {
+    if (this.only === "AFTERSHOCK") { if (!this.shocking) this.plays.AFTERSHOCK?.(cx); return; }
+    if (this.only === "FOCUS SNAP") {
+      this.focused = false;
+      cx.notify();
+      cx.timer.after(400 * this.m.factor(), (c) => this.plays["FOCUS SNAP"]?.(c ?? cx));
+      return;
+    }
+    this.plays[this.only]?.(cx);
   }
 
   close() {
@@ -136,6 +162,31 @@ export default class Specimen extends View {
     const snap = v_flex().gap(6).child(ring(field, t, this.focused, this.m.running("snap")));
     const playSnap = (cx) => { this.focused = true; this.m.play("snap", [40], cx); };
 
+    this.plays = { GLITCH: playGlitch, DISSOLVE: playDissolve, STEP: playStep, FEED: playFeed, "HARD CUT": playCut,
+      AFTERSHOCK: toggleShocks, "BOOT LOG": playBoot, BUILD: playBuild, "FOCUS SNAP": playSnap };
+    const panels = [
+      panel("BUSY · SCAN · CURSOR", null, marks, "Endless marks, stepped natively."),
+      panel("GLITCH", playGlitch, glitch, "Hover the text, or PLAY. At most 3 runs a second."),
+      panel("DISSOLVE", playDissolve, dissolve, "Characters settle in random order, 300 ms."),
+      panel("STEP", playStep, step, "Rows appear one by one, 28 ms apart."),
+      panel("FEED", playFeed, feed, "A sheet comes up in 4 steps of 40 ms."),
+      panel("HARD CUT", playCut, cut, "Two cuts to red with a tear, 400 ms."),
+      panel("AFTERSHOCK", toggleShocks, shockPanel, "A new kind every 1.4–5.2 s, some with an Emote."),
+      panel("BOOT LOG", playBoot, boot, "Types once per session, ends at the cursor."),
+      panel("BUILD", playBuild, build, "Frame source, cut, then each part."),
+      panel("FOCUS SNAP", playSnap, snap, "Lands 2 px out, closes in one 40 ms step."),
+    ];
+    const labels = ["BUSY · SCAN · CURSOR", "GLITCH", "DISSOLVE", "STEP", "FEED", "HARD CUT", "AFTERSHOCK", "BOOT LOG", "BUILD", "FOCUS SNAP"];
+    const solo = this.only ? panels[labels.indexOf(this.only)] : null;
+    const grid = v_flex().flex_1().min_h(0).overflow_y_scrollbar().p(18).gap(12)
+      .when(Boolean(solo), (el) => el.child(h_flex().w(560).child(solo)))
+      .when(!solo, (el) => el
+        .child(row2(panels[0], panels[1]))
+        .child(row2(panels[2], panels[3]))
+        .child(row2(panels[4], panels[5]))
+        .child(row2(panels[6], panels[7]))
+        .child(row2(panels[8], panels[9])));
+
     return v_flex()
       .id("g-specimen")
       .track_focus(this.handle)
@@ -153,11 +204,6 @@ export default class Specimen extends View {
           .on_click((_e, cx) => this.setSlow(!this.slow, cx)).child(this.slow ? "SLOW ×4" : "SPEED ×1"))
         .child(div().id("sp-esc").px(6).py(2).text_size(11).text_color(t.muted).cursor_pointer().hover((s) => s.bg(t.hover)).on_click(() => this.close()).child("ESC")))
       .when(off, (el) => el.child(div().px(18).py(8).text_size(11.5).text_color(t.working).child("macOS Reduce motion is on: every effect holds still, as the system asks.")))
-      .child(v_flex().flex_1().min_h(0).overflow_y_scrollbar().p(18).gap(12)
-        .child(row2(panel("BUSY · SCAN · CURSOR", null, marks, "Endless marks, stepped natively."), panel("GLITCH", playGlitch, glitch, "Hover the text, or PLAY. At most 3 runs a second.")))
-        .child(row2(panel("DISSOLVE", playDissolve, dissolve, "Characters settle in random order, 300 ms."), panel("STEP", playStep, step, "Rows appear one by one, 28 ms apart.")))
-        .child(row2(panel("FEED", playFeed, feed, "A sheet comes up in 4 steps of 40 ms."), panel("HARD CUT", playCut, cut, "Two cuts to red with a tear, 400 ms.")))
-        .child(row2(panel("AFTERSHOCK", toggleShocks, shockPanel, "A new kind every 1.4–5.2 s, some with an Emote."), panel("BOOT LOG", playBoot, boot, "Types once per session, ends at the cursor.")))
-        .child(row2(panel("BUILD", playBuild, build, "Frame source, cut, then each part."), panel("FOCUS SNAP", playSnap, snap, "Lands 2 px out, closes in one 40 ms step."))));
+      .child(grid);
   }
 }

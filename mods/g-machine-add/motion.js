@@ -107,6 +107,12 @@ export class Motion {
     this.deck = [];
   }
 
+  // Slow motion: this view's own scale (the specimen's SLOW) times shared
+  // "g.motion.scale", which the demo recorder sets to slow every mod at once.
+  factor() {
+    return this.scale * (shared("g.motion.scale") ?? 1);
+  }
+
   /**
    * Runs phases 0…n-1, `durations[i]` ms each, then ends (phase -1). Each
    * step's timer comes from the cx the step before was given, never a kept
@@ -115,7 +121,8 @@ export class Motion {
    */
   play(key, durations, cx, data = {}) {
     if (reduced() || !durations.length) return false;
-    durations = durations.map((d) => d * this.scale);
+    const k = this.factor();
+    durations = durations.map((d) => d * k);
     const total = durations.reduce((a, b) => a + b, 0);
     const run = { phase: 0, data, end: Date.now() + total + 250 };
     this.fx.set(key, run);
@@ -226,7 +233,7 @@ export class Motion {
     const steps = Math.min(24, Math.max(4, Math.ceil(text.length / 3)));
     const frames = Array.from({ length: steps }, (_, k) => text.slice(0, Math.ceil(((k + 1) / steps) * text.length)));
     if (this.play(key, Array(steps).fill(MS.boot / steps), cx, { frames })) {
-      cx.timer.after(MS.boot * this.scale, (cx2) => this.play(`${key}:cursor`, [MS.cursor * 5 / this.scale], cx2 ?? cx));
+      cx.timer.after(MS.boot * this.factor(), (cx2) => this.play(`${key}:cursor`, [MS.cursor * 5 / this.factor()], cx2 ?? cx));
     }
   }
 
