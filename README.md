@@ -10,7 +10,7 @@ A Herdr layout in the goksen.ing look:
 
 ## Add it
 
-Ask the agent in Herdr to add `herdr.dev/layouts/<owner>/herdr-goksen`. To add it by hand:
+Ask the agent in Herdr to add `herdr.dev/layouts/dopplerDistortion/herdr-goksen`. To add it by hand:
 
 1. Copy `layouts/goksen.json` and `layouts/goksen.svg` into `~/.config/herdr-app/layouts/`.
 2. Copy `themes/goksen-ing.json` into `~/.config/herdr-app/themes/`.
