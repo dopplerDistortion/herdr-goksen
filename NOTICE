@@ -1,0 +1,11 @@
+goksen.ing for Herdr
+
+The mods g-agents, g-changes, g-confirm, g-files, g-help, g-machine-add,
+g-menu, g-new-menu, g-pane, g-peek, g-picker, g-prompt, g-spaces, g-tabs,
+g-toast, g-workspace-chrome, g-workspace-status and g-worktree, and the
+layout goksen.json, started as copies of the mods and layout that ship with
+the Herdr app (Apache License 2.0). They were changed to restyle them and to
+add stepped motion.
+
+The mods g-palette, g-rename-tab, g-rename-space, g-settings and g-specimen,
+the theme goksen-ing.json and shared/motion.js are new.

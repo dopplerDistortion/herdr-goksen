@@ -1,0 +1,11 @@
+{
+  "layout:goksen": {
+    "cmd-p": "mod.open:g-picker",
+    "cmd-shift-p": "mod.open:g-palette",
+    "cmd-/": "mod.open:g-help",
+    "cmd-shift-/": "mod.open:g-help",
+    "f2": "mod.open:g-rename-tab",
+    "shift-f2": "mod.open:g-rename-space",
+    "cmd-,": "mod.open:g-settings"
+  }
+}

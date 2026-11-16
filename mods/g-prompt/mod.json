@@ -1,0 +1,10 @@
+{
+  "place": "none",
+  "cloned_from": {
+    "name": "prompt",
+    "version": "0.1.16"
+  },
+  "overlay": {
+    "frame": "none"
+  }
+}
